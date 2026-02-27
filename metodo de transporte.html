@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimizador de Transporte y Asignación | Investigación de Operaciones</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #64748b;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --background: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .app-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            flex: 1;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .panel-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .panel-section h2 {
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .dimension-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Method Selector */
+        .method-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .radio-label:hover {
+            background: var(--background);
+        }
+
+        .radio-label input[type="radio"] {
+            display: none;
+        }
+
+        .radio-custom {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--secondary-color);
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .radio-label input[type="radio"]:checked + .radio-custom::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-calculate {
+            background: var(--success-color);
+            color: white;
+            font-size: 1.2rem;
+            padding: 1rem 2rem;
+        }
+
+        .btn-reset {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-icon {
+            font-size: 1.2rem;
+        }
+
+        /* Matrix Section */
+        .matrix-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .matrix-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .matrix-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .matrix-container {
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+        }
+
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .matrix-table th,
+        .matrix-table td {
+            border: 1px solid var(--border-color);
+            padding: 0.75rem;
+            text-align: center;
+        }
+
+        .matrix-table th {
+            background: var(--background);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .matrix-table input {
+            width: 80px;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .matrix-table input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .row-label {
+            font-weight: 600;
+            background: var(--background);
+        }
+
+        .demand-row {
+            background: var(--background);
+            font-weight: 600;
+        }
+
+        /* Action Bar */
+        .action-bar {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Results Section */
+        .results-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .results-tabs {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .solution-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .summary-label {
+            display: block;
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-value {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .solution-matrix {
+            overflow-x: auto;
+        }
+
+        .iterations-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .iteration-card {
+            background: var(--background);
+            border-radius: 8px;
+            padding: 1rem;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .iteration-card h4 {
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .iteration-card p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .control-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            .method-selector {
+                grid-template-columns: 1fr;
+            }
+            
+            .solution-summary {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .main-content {
+                padding: 0 1rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>📊 Optimizador de Transporte y Asignación</h1>
+                <p class="subtitle">Resuelve problemas de programación lineal con métodos avanzados</p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Panel de Control -->
+            <section class="control-panel">
+                <div class="panel-section">
+                    <h2>⚙️ Configuración del Problema</h2>
+                    <div class="input-group">
+                        <label for="problemType">Tipo de Problema:</label>
+                        <select id="problemType" class="form-select">
+                            <option value="transport">🚚 Transporte</option>
+                            <option value="assignment">📋 Asignación</option>
+                        </select>
+                    </div>
+
+                    <div class="dimension-inputs">
+                        <div class="input-group">
+                            <label for="origins">Número de Orígenes/Fuentes:</label>
+                            <input type="number" id="origins" min="1" max="10" value="3" class="form-input">
+                        </div>
+                        <div class="input-group">
+                            <label for="destinations">Número de Destinos/Tareas:</label>
+                            <input type="number" id="destinations" min="1" max="10" value="3" class="form-input">
+                        </div>
+                    </div>
+
+                    <button id="generateMatrix" class="btn btn-primary">
+                        <span class="btn-icon">🔄</span> Generar Matriz
+                    </button>
+                </div>
+
+                <div class="panel-section">
+                    <h2>⚡ Método de Solución</h2>
+                    <div class="method-selector">
+                        <label class="radio-label">
+                            <input type="radio" name="method" value="northwest" checked> 
+                            <span class="radio-custom"></span>
+                            Esquina Noroeste
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="method" value="mincost"> 
+                            <span class="radio-custom"></span>
+                            Costo Mínimo
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="method" value="vogel"> 
+                            <span class="radio-custom"></span>
+                            Vogel (Aproximación)
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="method" value="hungarian"> 
+                            <span class="radio-custom"></span>
+                            Método Húngaro
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Matriz de Datos -->
+            <section class="matrix-section">
+                <div class="matrix-header">
+                    <h2>📝 Matriz de Costos y Restricciones</h2>
+                    <div class="matrix-actions">
+                        <button id="randomData" class="btn btn-secondary">
+                            <span class="btn-icon">🎲</span> Datos Aleatorios
+                        </button>
+                        <button id="clearMatrix" class="btn btn-secondary">
+                            <span class="btn-icon">🗑️</span> Limpiar
+                        </button>
+                    </div>
+                </div>
+
+                <div id="matrixContainer" class="matrix-container">
+                    <!-- La matriz se generará dinámicamente con JavaScript -->
+                </div>
+
+                <div class="supply-demand-section">
+                    <div class="input-group">
+                        <label for="balanceType">Balance:</label>
+                        <select id="balanceType" class="form-select">
+                            <option value="balanced">Balanceado</option>
+                            <option value="unbalancedSupply">Oferta > Demanda</option>
+                            <option value="unbalancedDemand">Demanda > Oferta</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Botón de Cálculo -->
+            <div class="action-bar">
+                <button id="calculateBtn" class="btn btn-calculate">
+                    <span class="btn-icon">🧮</span> Calcular Solución Óptima
+                </button>
+                <button id="resetBtn" class="btn btn-reset">
+                    <span class="btn-icon">↺</span> Reiniciar
+                </button>
+            </div>
+
+            <!-- Resultados -->
+            <section class="results-section">
+                <div class="results-header">
+                    <h2>📊 Resultados del Análisis</h2>
+                    <div class="results-tabs">
+                        <button class="tab-btn active" data-tab="solution">Solución</button>
+                        <button class="tab-btn" data-tab="iterations">Iteraciones</button>
+                        <button class="tab-btn" data-tab="analysis">Análisis</button>
+                    </div>
+                </div>
+
+                <div id="resultsContent" class="results-content">
+                    <div class="tab-pane active" id="solution-tab">
+                        <div class="solution-summary">
+                            <div class="summary-card">
+                                <span class="summary-label">Costo Total Mínimo:</span>
+                                <span id="totalCost" class="summary-value">-</span>
+                            </div>
+                            <div class="summary-card">
+                                <span class="summary-label">Tipo de Problema:</span>
+                                <span id="problemTypeDisplay" class="summary-value">-</span>
+                            </div>
+                            <div class="summary-card">
+                                <span class="summary-label">Método Utilizado:</span>
+                                <span id="methodUsed" class="summary-value">-</span>
+                            </div>
+                        </div>
+                        <div id="solutionMatrix" class="solution-matrix">
+                            <!-- Matriz solución -->
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane" id="iterations-tab">
+                        <div id="iterationsLog" class="iterations-log">
+                            <!-- Log de iteraciones -->
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane" id="analysis-tab">
+                        <div id="analysisContent" class="analysis-content">
+                            <p>Seleccione un método y calcule para ver el análisis detallado.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>© 2024 Optimizador IO - Herramienta profesional para investigación de operaciones</p>
+        </footer>
+    </div>
+
+    <script>
+        class OptimizationSolver {
+            constructor() {
+                this.costMatrix = [];
+                this.supply = [];
+                this.demand = [];
+                this.solution = [];
+                this.iterations = [];
+            }
+
+            // Método de la Esquina Noroeste
+            northwestCorner(costMatrix, supply, demand) {
+                const rows = supply.length;
+                const cols = demand.length;
+                const solution = Array(rows).fill().map(() => Array(cols).fill(0));
+                const supplyCopy = [...supply];
+                const demandCopy = [...demand];
+                let totalCost = 0;
+                let i = 0, j = 0;
+
+                while (i < rows && j < cols) {
+                    const amount = Math.min(supplyCopy[i], demandCopy[j]);
+                    solution[i][j] = amount;
+                    totalCost += amount * costMatrix[i][j];
+                    
+                    this.iterations.push({
+                        step: this.iterations.length + 1,
+                        cell: `(${i+1}, ${j+1})`,
+                        amount: amount,
+                        cost: amount * costMatrix[i][j],
+                        supply: [...supplyCopy],
+                        demand: [...demandCopy]
+                    });
+
+                    supplyCopy[i] -= amount;
+                    demandCopy[j] -= amount;
+
+                    if (supplyCopy[i] === 0) i++;
+                    if (demandCopy[j] === 0) j++;
+                }
+
+                return { solution, totalCost };
+            }
+
+            // Método de Costo Mínimo
+            minimumCost(costMatrix, supply, demand) {
+                const rows = supply.length;
+                const cols = demand.length;
+                const solution = Array(rows).fill().map(() => Array(cols).fill(0));
+                const supplyCopy = [...supply];
+                const demandCopy = [...demand];
+                const costCopy = costMatrix.map(row => [...row]);
+                let totalCost = 0;
+
+                while (true) {
+                    // Encontrar el mínimo costo
+                    let minCost = Infinity;
+                    let minI = -1, minJ = -1;
+
+                    for (let i = 0; i < rows; i++) {
+                        for (let j = 0; j < cols; j++) {
+                            if (supplyCopy[i] > 0 && demandCopy[j] > 0 && costCopy[i][j] < minCost) {
+                                minCost = costCopy[i][j];
+                                minI = i;
+                                minJ = j;
+                            }
+                        }
+                    }
+
+                    if (minI === -1) break;
+
+                    const amount = Math.min(supplyCopy[minI], demandCopy[minJ]);
+                    solution[minI][minJ] = amount;
+                    totalCost += amount * costMatrix[minI][minJ];
+
+                    this.iterations.push({
+                        step: this.iterations.length + 1,
+                        cell: `(${minI+1}, ${minJ+1})`,
+                        amount: amount,
+                        cost: amount * costMatrix[minI][minJ],
+                        supply: [...supplyCopy],
+                        demand: [...demandCopy]
+                    });
+
+                    supplyCopy[minI] -= amount;
+                    demandCopy[minJ] -= amount;
+
+                    if (supplyCopy[minI] === 0) {
+                        for (let j = 0; j < cols; j++) {
+                            costCopy[minI][j] = Infinity;
+                        }
+                    }
+                    if (demandCopy[minJ] === 0) {
+                        for (let i = 0; i < rows; i++) {
+                            costCopy[i][minJ] = Infinity;
+                        }
+                    }
+                }
+
+                return { solution, totalCost };
+            }
+
+            // Método de Vogel (VAM)
+            vogelApproximation(costMatrix, supply, demand) {
+                const rows = supply.length;
+                const cols = demand.length;
+                const solution = Array(rows).fill().map(() => Array(cols).fill(0));
+                const supplyCopy = [...supply];
+                const demandCopy = [...demand];
+                const costCopy = costMatrix.map(row => [...row]);
+                let totalCost = 0;
+
+                while (true) {
+                    // Calcular penalizaciones
+                    const rowPenalties = [];
+                    const colPenalties = [];
+
+                    // Penalizaciones por fila
+                    for (let i = 0; i < rows; i++) {
+                        if (supplyCopy[i] === 0) {
+                            rowPenalties[i] = -1;
+                            continue;
+                        }
+                        const costs = [];
+                        for (let j = 0; j < cols; j++) {
+                            if (demandCopy[j] > 0 && costCopy[i][j] < Infinity) {
+                                costs.push(costCopy[i][j]);
+                            }
+                        }
+                        costs.sort((a, b) => a - b);
+                        rowPenalties[i] = costs.length >= 2 ? costs[1] - costs[0] : costs[0] || 0;
+                    }
+
+                    // Penalizaciones por columna
+                    for (let j = 0; j < cols; j++) {
+                        if (demandCopy[j] === 0) {
+                            colPenalties[j] = -1;
+                            continue;
+                        }
+                        const costs = [];
+                        for (let i = 0; i < rows; i++) {
+                            if (supplyCopy[i] > 0 && costCopy[i][j] < Infinity) {
+                                costs.push(costCopy[i][j]);
+                            }
+                        }
+                        costs.sort((a, b) => a - b);
+                        colPenalties[j] = costs.length >= 2 ? costs[1] - costs[0] : costs[0] || 0;
+                    }
+
+                    // Encontrar máxima penalización
+                    const maxRowPenalty = Math.max(...rowPenalties.filter(p => p >= 0));
+                    const maxColPenalty = Math.max(...colPenalties.filter(p => p >= 0));
+
+                    let selectedRow, selectedCol;
+
+                    if (maxRowPenalty >= maxColPenalty) {
+                        selectedRow = rowPenalties.indexOf(maxRowPenalty);
+                        // Encontrar mínimo costo en la fila
+                        let minCost = Infinity;
+                        for (let j = 0; j < cols; j++) {
+                            if (demandCopy[j] > 0 && costCopy[selectedRow][j] < minCost) {
+                                minCost = costCopy[selectedRow][j];
+                                selectedCol = j;
+                            }
+                        }
+                    } else {
+                        selectedCol = colPenalties.indexOf(maxColPenalty);
+                        // Encontrar mínimo costo en la columna
+                        let minCost = Infinity;
+                        for (let i = 0; i < rows; i++) {
+                            if (supplyCopy[i] > 0 && costCopy[i][selectedCol] < minCost) {
+                                minCost = costCopy[i][selectedCol];
+                                selectedRow = i;
+                            }
+                        }
+                    }
+
+                    if (selectedRow === undefined || selectedCol === undefined) break;
+
+                    const amount = Math.min(supplyCopy[selectedRow], demandCopy[selectedCol]);
+                    solution[selectedRow][selectedCol] = amount;
+                    totalCost += amount * costMatrix[selectedRow][selectedCol];
+
+                    this.iterations.push({
+                        step: this.iterations.length + 1,
+                        cell: `(${selectedRow+1}, ${selectedCol+1})`,
+                        amount: amount,
+                        cost: amount * costMatrix[selectedRow][selectedCol],
+                        penalty: { row: maxRowPenalty, col: maxColPenalty }
+                    });
+
+                    supplyCopy[selectedRow] -= amount;
+                    demandCopy[selectedCol] -= amount;
+
+                    if (supplyCopy[selectedRow] === 0) {
+                        for (let j = 0; j < cols; j++) {
+                            costCopy[selectedRow][j] = Infinity;
+                        }
+                    }
+                    if (demandCopy[selectedCol] === 0) {
+                        for (let i = 0; i < rows; i++) {
+                            costCopy[i][selectedCol] = Infinity;
+                        }
+                    }
+
+                    if (supplyCopy.every(s => s === 0) || demandCopy.every(d => d === 0)) break;
+                }
+
+                return { solution, totalCost };
+            }
+
+            // Método Húngaro para asignación
+            hungarianMethod(costMatrix) {
+                const n = costMatrix.length;
+                let matrix = costMatrix.map(row => [...row]);
+                
+                // Paso 1: Restar el mínimo de cada fila
+                for (let i = 0; i < n; i++) {
+                    const minRow = Math.min(...matrix[i]);
+                    for (let j = 0; j < n; j++) {
+                        matrix[i][j] -= minRow;
+                    }
+                }
+
+                // Paso 2: Restar el mínimo de cada columna
+                for (let j = 0; j < n; j++) {
+                    let minCol = Infinity;
+                    for (let i = 0; i < n; i++) {
+                        minCol = Math.min(minCol, matrix[i][j]);
+                    }
+                    if (minCol > 0) {
+                        for (let i = 0; i < n; i++) {
+                            matrix[i][j] -= minCol;
+                        }
+                    }
+                }
+
+                // Paso 3: Cubrir ceros con mínimo número de líneas
+                let assignment = Array(n).fill(-1);
+                let coveredRows = Array(n).fill(false);
+                let coveredCols = Array(n).fill(false);
+
+                // Asignación inicial
+                for (let i = 0; i < n; i++) {
+                    for (let j = 0; j < n; j++) {
+                        if (matrix[i][j] === 0 && !coveredRows[i] && !coveredCols[j]) {
+                            assignment[i] = j;
+                            coveredRows[i] = true;
+                            coveredCols[j] = true;
+                            break;
+                        }
+                    }
+                }
+
+                return this.calculateAssignmentCost(costMatrix, assignment);
+            }
+
+            calculateAssignmentCost(costMatrix, assignment) {
+                const solution = Array(costMatrix.length).fill().map(() => Array(costMatrix.length).fill(0));
+                let totalCost = 0;
+
+                for (let i = 0; i < assignment.length; i++) {
+                    if (assignment[i] !== -1) {
+                        solution[i][assignment[i]] = 1;
+                        totalCost += costMatrix[i][assignment[i]];
+                    }
+                }
+
+                return { solution, totalCost };
+            }
+
+            // Método principal para resolver
+            solve(problemType, method, costMatrix, supply, demand) {
+                this.iterations = [];
+                this.costMatrix = costMatrix;
+                this.supply = supply;
+                this.demand = demand;
+
+                if (problemType === 'assignment') {
+                    return this.hungarianMethod(costMatrix);
+                } else {
+                    switch(method) {
+                        case 'northwest':
+                            return this.northwestCorner(costMatrix, supply, demand);
+                        case 'mincost':
+                            return this.minimumCost(costMatrix, supply, demand);
+                        case 'vogel':
+                            return this.vogelApproximation(costMatrix, supply, demand);
+                        default:
+                            return this.northwestCorner(costMatrix, supply, demand);
+                    }
+                }
+            }
+        }
+
+        // UI Controller
+        class UIController {
+            constructor() {
+                this.solver = new OptimizationSolver();
+                this.initElements();
+                this.initEventListeners();
+                this.generateMatrix();
+            }
+
+            initElements() {
+                this.problemType = document.getElementById('problemType');
+                this.origins = document.getElementById('origins');
+                this.destinations = document.getElementById('destinations');
+                this.generateMatrixBtn = document.getElementById('generateMatrix');
+                this.calculateBtn = document.getElementById('calculateBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.randomDataBtn = document.getElementById('randomData');
+                this.clearMatrixBtn = document.getElementById('clearMatrix');
+                this.matrixContainer = document.getElementById('matrixContainer');
+                this.totalCostSpan = document.getElementById('totalCost');
+                this.problemTypeDisplay = document.getElementById('problemTypeDisplay');
+                this.methodUsed = document.getElementById('methodUsed');
+                this.solutionMatrix = document.getElementById('solutionMatrix');
+                this.balanceType = document.getElementById('balanceType');
+                
+                // Tabs
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.addEventListener('click', () => this.switchTab(btn.dataset.tab));
+                });
+            }
+
+            initEventListeners() {
+                this.generateMatrixBtn.addEventListener('click', () => this.generateMatrix());
+                this.calculateBtn.addEventListener('click', () => this.calculate());
+                this.resetBtn.addEventListener('click', () => this.reset());
+                this.randomDataBtn.addEventListener('click', () => this.generateRandomData());
+                this.clearMatrixBtn.addEventListener('click', () => this.clearMatrix());
+                this.problemType.addEventListener('change', () => this.updateMatrixStructure());
+            }
+
+            generateMatrix() {
+                const rows = parseInt(this.origins.value);
+                const cols = parseInt(this.destinations.value);
+                const isAssignment = this.problemType.value === 'assignment';
+
+                let html = '<table class="matrix-table">';
+                
+                // Header
+                html += '<thead><tr><th>Origen/Destino</th>';
+                for (let j = 1; j <= cols; j++) {
+                    html += `<th>Destino ${j}</th>`;
+                }
+                if (!isAssignment) {
+                    html += '<th>Oferta</th>';
+                }
+                html += '</tr></thead><tbody>';
+
+                // Rows
+                for (let i = 1; i <= rows; i++) {
+                    html += '<tr>';
+                    html += `<td class="row-label">Origen ${i}</td>`;
+                    
+                    for (let j = 1; j <= cols; j++) {
+                        html += `<td><input type="number" id="cost_${i}_${j}" value="0" min="0" step="1" class="cost-input"></td>`;
+                    }
+                    
+                    if (!isAssignment) {
+                        html += `<td><input type="number" id="supply_${i}" value="10" min="0" class="supply-input"></td>`;
+                    }
+                    
+                    html += '</tr>';
+                }
+
+                // Demand row for transport
+                if (!isAssignment) {
+                    html += '<tr class="demand-row">';
+                    html += '<td>Demanda</td>';
+                    for (let j = 1; j <= cols; j++) {
+                        html += `<td><input type="number" id="demand_${j}" value="10" min="0" class="demand-input"></td>`;
+                    }
+                    html += '<td></td></tr>';
+                }
+
+                html += '</tbody></table>';
+                this.matrixContainer.innerHTML = html;
+            }
+
+            getMatrixData() {
+                const rows = parseInt(this.origins.value);
+                const cols = parseInt(this.destinations.value);
+                const isAssignment = this.problemType.value === 'assignment';
+                
+                const costMatrix = [];
+                const supply = [];
+                const demand = [];
+
+                for (let i = 1; i <= rows; i++) {
+                    const row = [];
+                    for (let j = 1; j <= cols; j++) {
+                        const input = document.getElementById(`cost_${i}_${j}`);
+                        row.push(parseFloat(input.value) || 0);
+                    }
+                    costMatrix.push(row);
+                    
+                    if (!isAssignment) {
+                        const supplyInput = document.getElementById(`supply_${i}`);
+                        supply.push(parseFloat(supplyInput.value) || 0);
+                    }
+                }
+
+                if (!isAssignment) {
+                    for (let j = 1; j <= cols; j++) {
+                        const demandInput = document.getElementById(`demand_${j}`);
+                        demand.push(parseFloat(demandInput.value) || 0);
+                    }
+                }
+
+                return { costMatrix, supply, demand };
+            }
+
+            calculate() {
+                const method = document.querySelector('input[name="method"]:checked').value;
+                const problemType = this.problemType.value;
+                const { costMatrix, supply, demand } = this.getMatrixData();
+
+                // Validación básica
+                if (problemType === 'transport') {
+                    const totalSupply = supply.reduce((a, b) => a + b, 0);
+                    const totalDemand = demand.reduce((a, b) => a + b, 0);
+                    
+                    if (totalSupply !== totalDemand) {
+                        const balanceType = this.balanceType.value;
+                        if (balanceType === 'unbalancedSupply' && totalSupply > totalDemand) {
+                            // Agregar destino ficticio
+                            demand.push(totalSupply - totalDemand);
+                        } else if (balanceType === 'unbalancedDemand' && totalDemand > totalSupply) {
+                            // Agregar origen ficticio
+                            supply.push(totalDemand - totalSupply);
+                        }
+                    }
+                }
+
+                const result = this.solver.solve(problemType, method, costMatrix, supply, demand);
+                
+                // Actualizar UI con resultados
+                this.displayResults(result, method, problemType);
+            }
+
+            displayResults(result, method, problemType) {
+                this.totalCostSpan.textContent = result.totalCost.toFixed(2);
+                this.problemTypeDisplay.textContent = problemType === 'transport' ? 'Transporte' : 'Asignación';
+                
+                const methodNames = {
+                    'northwest': 'Esquina Noroeste',
+                    'mincost': 'Costo Mínimo',
+                    'vogel': 'Vogel (VAM)',
+                    'hungarian': 'Método Húngaro'
+                };
+                this.methodUsed.textContent = methodNames[method] || method;
+
+                // Mostrar matriz solución
+                let html = '<table class="matrix-table">';
+                html += '<thead><tr><th></th>';
+                for (let j = 1; j <= result.solution[0].length; j++) {
+                    html += `<th>Destino ${j}</th>`;
+                }
+                html += '</tr></thead><tbody>';
+
+                for (let i = 0; i < result.solution.length; i++) {
+                    html += '<tr>';
+                    html += `<td class="row-label">Origen ${i+1}</td>`;
+                    for (let j = 0; j < result.solution[i].length; j++) {
+                        const value = result.solution[i][j];
+                        const cost = this.solver.costMatrix[i][j];
+                        html += `<td>${value} <small>(costo: ${cost})</small></td>`;
+                    }
+                    html += '</tr>';
+                }
+                html += '</tbody></table>';
+                
+                this.solutionMatrix.innerHTML = html;
+
+                // Mostrar iteraciones
+                this.displayIterations();
+
+                // Análisis
+                this.displayAnalysis(result, method);
+            }
+
+            displayIterations() {
+                const log = document.getElementById('iterationsLog');
+                if (this.solver.iterations.length === 0) {
+                    log.innerHTML = '<p>No hay iteraciones para mostrar.</p>';
+                    return;
+                }
+
+                let html = '<div class="iterations-list">';
+                
+                this.solver.iterations.forEach(iter => {
+                    html += `
+                        <div class="iteration-card fade-in">
+                            <h4>Paso ${iter.step}</h4>
+                            <p>Celda seleccionada: ${iter.cell}</p>
+                            <p>Cantidad asignada: ${iter.amount}</p>
+                            <p>Costo parcial: ${iter.cost}</p>
+                            ${iter.penalty ? `<p>Penalización: Fila ${iter.penalty.row}, Col ${iter.penalty.col}</p>` : ''}
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                log.innerHTML = html;
+            }
+
+            displayAnalysis(result, method) {
+                const analysisDiv = document.getElementById('analysisContent');
+                const totalCells = result.solution.length * result.solution[0].length;
+                const usedCells = result.solution.flat().filter(v => v > 0).length;
+                
+                let html = `
+                    <div class="analysis-content">
+                        <h3>Análisis de la Solución</h3>
+                        <p>📊 <strong>Estadísticas:</strong></p>
+                        <ul>
+                            <li>Celdas utilizadas: ${usedCells} de ${totalCells}</li>
+                            <li>Costo promedio por unidad: ${(result.totalCost / result.solution.flat().reduce((a, b) => a + b, 0)).toFixed(2)}</li>
+                            <li>Número de iteraciones: ${this.solver.iterations.length}</li>
+                        </ul>
+                        <p>💡 <strong>Interpretación:</strong></p>
+                        <p>La solución encontrada distribuye los recursos de manera óptima, minimizando el costo total de ${result.totalCost.toFixed(2)} unidades monetarias.</p>
+                    </div>
+                `;
+                
+                analysisDiv.innerHTML = html;
+            }
+
+            generateRandomData() {
+                const rows = parseInt(this.origins.value);
+                const cols = parseInt(this.destinations.value);
+                const isAssignment = this.problemType.value === 'assignment';
+
+                for (let i = 1; i <= rows; i++) {
+                    for (let j = 1; j <= cols; j++) {
+                        const input = document.getElementById(`cost_${i}_${j}`);
+                        if (input) {
+                            input.value = Math.floor(Math.random() * 20) + 1;
+                        }
+                    }
+                    
+                    if (!isAssignment) {
+                        const supplyInput = document.getElementById(`supply_${i}`);
+                        if (supplyInput) {
+                            supplyInput.value = Math.floor(Math.random() * 30) + 10;
+                        }
+                    }
+                }
+
+                if (!isAssignment) {
+                    for (let j = 1; j <= cols; j++) {
+                        const demandInput = document.getElementById(`demand_${j}`);
+                        if (demandInput) {
+                            demandInput.value = Math.floor(Math.random() * 30) + 10;
+                        }
+                    }
+                }
+            }
+
+            clearMatrix() {
+                const inputs = document.querySelectorAll('input[type="number"]');
+                inputs.forEach(input => input.value = '0');
+            }
+
+            updateMatrixStructure() {
+                this.generateMatrix();
+            }
+
+            reset() {
+                this.solver = new OptimizationSolver();
+                this.totalCostSpan.textContent = '-';
+                this.problemTypeDisplay.textContent = '-';
+                this.methodUsed.textContent = '-';
+                this.solutionMatrix.innerHTML = '';
+                document.getElementById('iterationsLog').innerHTML = '';
+                document.getElementById('analysisContent').innerHTML = '<p>Seleccione un método y calcule para ver el análisis detallado.</p>';
+                document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+                document.querySelector('[data-tab="solution"]').classList.add('active');
+                document.getElementById('solution-tab').classList.add('active');
+                this.generateMatrix();
+            }
+
+            switchTab(tabId) {
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+                
+                document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new UIController();
+        });
+    </script>
+</body>
+</html>
